@@ -1,0 +1,48 @@
+{
+  "name": "fcross",
+  "version": "0.0.1",
+  "description": "Safe Micro-Frontend Communication",
+  "main": "index.js",
+  "scripts": {
+    "clean": "rm dist/bundle.js",
+    "build-dev": "webpack --mode development",
+    "build-prod": "webpack --mode production",
+    "test": "mocha",
+    "start": "chokidar 'src/**/*.js' -c 'npm run build-prod && npm run transfer-ng1 && npm run transfer-ngx'",
+    "transfer-ngx": "run-s create-ngx-modules transfer-dist-ngx",
+    "transfer-ng1": "run-s create-ng1-modules transfer-dist-ng1",
+    "create-ngx-modules": "mkdir -p ../../serpro-workspace/duex-08311/pucomex-duex-frontend/packages/ngx/node_modules/fcross/",
+    "create-ng1-modules": "mkdir -p ../../serpro-workspace/duex-08311/pucomex-duex-frontend/packages/ng1/node_modules/fcross/",
+    "transfer-dist-ngx": "cp -r dist/* ../../serpro-workspace/duex-08311/pucomex-duex-frontend/packages/ngx/node_modules/fcross",
+    "transfer-dist-ng1": "cp -r dist/* ../../serpro-workspace/duex-08311/pucomex-duex-frontend/packages/ng1/node_modules/fcross"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tiagolisalves/fcross.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tiagolisalves/fcross/issues"
+  },
+  "homepage": "https://github.com/tiagolisalves/fcross#readme",
+  "devDependencies": {
+    "@babel/core": "latest",
+    "@babel/preset-env": "^7.13.10",
+    "babel-loader": "latest",
+    "mocha": "latest",
+    "npm-run-all": "^4.1.5",
+    "webpack": "^5.26.3",
+    "webpack-cli": "latest",
+    "chokidar-cli": "^1.2.3"
+  },
+  "bin": {
+    "fcross": "./src/cli.js"
+  },
+  "dependencies": {
+    "commander": "^7.2.0",
+    "concat": "^1.0.3",
+    "postcss": "^8.2.9",
+    "postcss-prefix-selector": "^1.9.0"
+  }
+}

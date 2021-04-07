@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>FluxoContratacao</title>
+    <base href="/"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link rel="icon" type="image/x-icon" href="favicon.ico"/>
+    <style>
+      select {
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        appearance: none !important;
+        -ms-appearance: none !important; /* get rid of default appearance for IE8, 9 and 10*/
+      }
+
+      select {
+        box-sizing: border-box;
+        background-clip: padding-box;
+        -webkit-appearance: none;
+        outline: 0;
+        text-align: left;
+        height: 4em;
+      }
+
+      option {
+        background-color: #fff;
+        color: #000;
+      }
+
+      form .error {
+        border: 1px solid red;
+      }
+
+      .form-error-message {
+        color: red;
+        font-size: 11px;
+        vertical-align: top;
+      }
+
+      .w-input:focus.error,
+      .w-select:focus.error {
+        border-color: red !important;
+        outline: 0;
+      }
+    </style>
+    <link rel="stylesheet" href="https://uploads-ssl.webflow.com/5fda72366fdb5a5589c5741b/css/gera-solucoes.webflow.ed909db80.min.css"/>
+  <link rel="stylesheet" href="styles.0e4338761429b4eb16ac.css"></head>
+  <body class="body-3">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.js"></script>
+
+    <script>
+      var PopUpCtrl = function () {
+        popUps = [];
+        this.onClose = function () {
+          console.log("closing");
+        };
+        this.init = function () {
+          this.backgroundClass = "gerapopup-background";
+          this.backgroundStyle = {
+            position: "fixed",
+            width: "100%",
+            height: "100vh",
+            "background-color": "black",
+            "z-index": "2221",
+            opacity: "0.4",
+            display: "none",
+          };
+
+          $("body").prepend(
+            '<div class="'.concat(this.backgroundClass).concat('"></div>')
+          );
+          $("." + this.backgroundClass).css(this.backgroundStyle);
+          this.addCloseHandler(this);
+        };
+
+        this.show = function (type) {
+          popUps.forEach(function (p) {
+            $(".gerapopup.".concat(p)).fadeOut();
+          });
+          popUps = [];
+          this.showBackground();
+          $(".gerapopup.".concat(type)).fadeIn();
+          popUps.push(type);
+        };
+
+        this.hide = function (type) {
+          this.hideBackground();
+          $(type ? ".gerapopup.".concat(type) : ".gerapopup").fadeOut();
+          this.onClose();
+        };
+
+        this.showBackground = function () {
+          $("." + this.backgroundClass).fadeIn();
+        };
+
+        this.hideBackground = function () {
+          $("." + this.backgroundClass).fadeOut();
+        };
+
+        this.addCloseHandler = function (ctrl) {
+          $(".gerapopup .popupclose").click(function () {
+            ctrl.hide();
+          });
+        };
+
+        this.init();
+      };
+
+      [".w-input", ".w-select"].forEach(function (type) {
+        $("body")
+          .find("form " + type)
+          .each(function (index, element) {
+            var uniqId = "msg-error" + element.form.id + element.id;
+            var msg = document.createElement("span");
+            $(msg).attr("id", uniqId);
+            $(msg).hide();
+            $(msg).addClass("form-error-message");
+            //$(msg).text('Campo obrigatório');
+            $(element).after($(msg));
+            $(element).bind("invalid", function () {
+              console.log(uniqId);
+              $("#" + uniqId).show();
+              $(element).addClass("error");
+              element.setCustomValidity(" ");
+              $(msg).show();
+            });
+            $(element).bind("input", function () {
+              $("#" + uniqId).hide();
+              $(element).removeClass("error");
+              element.setCustomValidity("");
+              $(msg).hide();
+            });
+          });
+      });
+
+      var popUpCtrl = new PopUpCtrl();
+
+      var Webflow = Webflow || [];
+      Webflow.push(function () {
+        $(document).off("submit");
+
+        $("#wf-form-SimuladorForm #field").mask("#.##0,00", {
+          reverse: true,
+        });
+
+        $("#wf-form-SimuladorForm").submit(function (evt) {
+          evt.preventDefault();
+          console.log(evt);
+          console.log($("#wf-form-SimuladorForm #field"));
+          console.log("Your custom action here");
+          var valorDaFatura =
+            parseFloat($("#wf-form-SimuladorForm #field").cleanVal()) / 100;
+          if (valorDaFatura < 500) {
+            popUpCtrl.show("msgvalorminimo");
+            return;
+          }
+
+          function calculateAndMask(selector, percent) {
+            $(selector).text((12 * valorDaFatura * percent).toFixed(2));
+            $(selector).mask(
+              function () {
+                return "#.##0,00";
+              },
+              { reverse: true }
+            );
+            $(selector).text("R$ " + $(selector).text());
+            $(selector).data("mask", "");
+          }
+          calculateAndMask(".valorplanobasic", 0.13);
+          calculateAndMask(".valorplanoplus", 0.17);
+          calculateAndMask(".valorplanomax", 0.21);
+
+          $(".simuladorcontainer .queroumapropostabutton").show();
+          $(".simuladorcontainer .queroumapropostabutton").click(function () {
+            popUpCtrl.show("dialogseravisado");
+          });
+        });
+
+        function getFormControlValue(formId, name) {
+          return $("#" + formId + " " + '[data-name="' + name + '"]').val();
+        }
+
+        function getFormData(formId) {
+          return $("#" + formId)
+            .serializeArray()
+            .reduce(function (obj, item) {
+              obj[item.name] = getFormControlValue(formId, item.name);
+              return obj;
+            }, {});
+        }
+
+        $("form.confirmationmsgform").submit(function (evt) {
+          evt.preventDefault();
+          console.log(evt);
+          var formData = getFormData(evt.target.id);
+          generateRDConversion(
+            $(evt.target).attr("data-conversion-id"),
+            formData
+          );
+
+          dataLayer.push({ event: "push_data", gera_form: formData });
+
+          $("#" + evt.target.id).trigger("reset");
+          popUpCtrl.show("confirmationformmsg");
+        });
+      });
+      function generateRDConversion(conversionIdentifier, formData) {
+        var conversionRequestObject = $.extend(
+          {
+            event_type: "CONVERSION",
+            event_family: "CDP",
+          },
+          {
+            payload: $.extend(
+              { conversion_identifier: conversionIdentifier },
+              formData
+            ),
+          }
+        );
+
+        var settings = {
+          async: true,
+          crossDomain: true,
+          url:
+            "https://api.rd.services/platform/conversions?api_key=mACXAaxNTNSbePViYeSopDfcbmFdoFJnEcwM",
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          processData: false,
+          data: JSON.stringify(conversionRequestObject),
+        };
+        $.ajax(settings).done(function (response) {
+          console.log(response);
+        });
+      }
+    </script>
+    <app-fluxo-contratacao></app-fluxo-contratacao>
+    <div class="confirmationpropostamsg confirmationpopup gerapopup">
+      <div class="popuptitle">Mensagem<br/>&zwj;</div>
+      <a href="#" class="popupclose w-button"></a>
+      <div class="popupcontent">
+        <div class="text-block-22">
+          Obrigado!<br/>O nosso time vai entrar em contato e enviar a sua
+          proposta em breve. Até logo!<br/><strong><br/>&zwj;</strong><br/>
+        </div>
+      </div>
+    </div>
+  <script src="runtime.0e49e2b53282f40c8925.js" defer></script><script src="polyfills-es5.7e0f3d7ba1308e593ce1.js" nomodule defer></script><script src="polyfills.f962c488e3c564e7449e.js" defer></script><script src="main.f75c16cd4fd581e36eac.js" defer></script></body>
+</html>
